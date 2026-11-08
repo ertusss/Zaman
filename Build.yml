@@ -1,0 +1,40 @@
+name: APK derle
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zip'i ac
+        run: unzip -q Zaman.zip
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+
+      - name: APK derle
+        working-directory: Zaman
+        run: gradle assembleDebug --no-daemon
+
+      - name: APK'yi yayinla
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp Zaman/app/build/outputs/apk/debug/app-debug.apk Zaman.apk
+          gh release create "v${{ github.run_number }}" Zaman.apk \
+            --title "Zaman v${{ github.run_number }}" \
+            --notes "Debug APK"
+      
